@@ -1,0 +1,71 @@
+pkg_name=android-tools
+version=37.0.0
+revision=1
+build_style=cmake
+short_desc="Android platform tools (adb, fastboot and friends)"
+home_page="https://github.com/nmeum/android-tools"
+license="Apache-2.0, BSD-2-Clause, ISC, MIT, GPL-2.0-only"
+dist_files="https://github.com/nmeum/android-tools/releases/download/${version}/android-tools-${version}.tar.xz"
+checksum="c2102666e07ffc6aad3c3376e0127b65c4c77b61bc7fda502814e8fb623d35ac"
+
+# python: avbtool, mkbootimg, unpack_bootimg, repack_bootimg, and mkdtboimg
+#   these are all python scripts but probably optional for most people id figure
+#
+# services is off here by default because most people dont want an adb server running 24/7
+# and just want to adb start-server whenever they need it as their user
+#
+# note that you'll need to add your androids ids to your mdev config, you can pull those from dmesg
+use_flags="man -python -completions -services"
+
+# for mdev.conf mostly
+system_groups="adbusers"
+adbusers_gid="38"
+
+depends="abseil-cpp brotli libusb lz4 pcre2 protobuf zlib zstd
+ $(use_if python python)"
+make_depends="abseil-cpp brotli cmake libusb linux-headers lz4 pcre2 pkgconf
+ protobuf zlib zstd"
+
+configure_args="
+    -DANDROID_TOOLS_PATCH_VENDOR=OFF
+    -DANDROID_TOOLS_USE_BUNDLED_FMT=ON
+    -DANDROID_TOOLS_USE_BUNDLED_LIBUSB=OFF
+    -DBUILD_TESTING=OFF
+    -DCMAKE_SKIP_INSTALL_RPATH=ON"
+
+pre_configure() {
+    # libziparchive, fastboot and a few other things include gtest/gtest_prod.h
+    # for its FRIEND_TEST macro in even non test builds, void/alpine use all of
+    # gtest for this but the copy boringssl vendors should work fine
+    CXXFLAGS="$CXXFLAGS -I$PWD/vendor/boringssl/third_party/googletest/googletest/include"
+    export CXXFLAGS
+}
+
+post_install() {
+    if ! use man; then
+        brm /usr/share/man
+    fi
+
+    if ! use python; then
+        brm /usr/bin/avbtool /usr/bin/mkbootimg /usr/bin/unpack_bootimg \
+            /usr/bin/repack_bootimg /usr/bin/mkdtboimg \
+            /usr/share/android-tools/mkbootimg
+    fi
+
+    if ! use completions; then
+        brm /usr/share/android-tools/completions /usr/share/bash-completion \
+            /usr/share/zsh
+    fi
+
+    rmdir "$DESTDIR/usr/share/android-tools" 2>/dev/null || :
+
+    if use services; then
+        bcopy "$FILESDIR/sources/." /usr/share/s6-rc/sources
+        find "$DESTDIR/usr/share/s6-rc/sources" -type f -name run -exec chmod 0755 {} +
+    fi
+
+    blicense LICENSE
+    blicense vendor/boringssl/LICENSE boringssl.LICENSE
+    blicense vendor/boringssl/third_party/fiat/LICENSE fiat.LICENSE
+    blicense vendor/fmtlib/LICENSE fmt.LICENSE
+}

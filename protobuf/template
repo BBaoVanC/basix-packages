@@ -1,0 +1,31 @@
+pkg_name=protobuf
+version=35.1
+revision=1
+build_style=cmake
+short_desc="Protocol buffers compiler and C++ library"
+home_page="https://protobuf.dev"
+license="BSD-3-Clause"
+dist_files="https://github.com/protocolbuffers/protobuf/releases/download/v${version}/protobuf-${version}.tar.gz"
+checksum="4d5d446b2303bac6defbefe120e6c7dea1964c03e9bd9df68d0fc44db2a52cde"
+
+use_flags="zlib"
+
+depends="abseil-cpp
+ $(use_if zlib zlib)"
+make_depends="abseil-cpp cmake pkgconf
+ $(use_if zlib zlib)"
+
+configure_args="
+    -Dprotobuf_BUILD_SHARED_LIBS=ON
+    -Dprotobuf_BUILD_LIBPROTOC=ON
+    -Dprotobuf_BUILD_PROTOC_BINARIES=ON
+    -Dprotobuf_BUILD_TESTS=OFF
+    -Dprotobuf_BUILD_CONFORMANCE=OFF
+    -Dprotobuf_BUILD_EXAMPLES=OFF
+    -Dprotobuf_LOCAL_DEPENDENCIES_ONLY=ON
+    -DCMAKE_SKIP_INSTALL_RPATH=ON
+    $(use_cmake zlib protobuf_WITH_ZLIB)"
+
+post_install() {
+    blicense LICENSE
+}

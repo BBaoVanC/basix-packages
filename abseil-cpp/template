@@ -1,0 +1,22 @@
+pkg_name=abseil-cpp
+version=20260817.0
+revision=1
+build_style=cmake
+short_desc="Abseil common libraries (C++)"
+home_page="https://abseil.io"
+license="Apache-2.0"
+dist_files="https://github.com/abseil/abseil-cpp/releases/download/${version}/abseil-cpp-${version}.tar.gz"
+checksum="f2f34b997bc3b4fceff423e26daf077ca1e7f2b9376c21b9681bebb766ab6932"
+make_depends="cmake"
+
+configure_args="
+    -DBUILD_SHARED_LIBS=ON
+    -DBUILD_TESTING=OFF
+    -DABSL_BUILD_TESTING=OFF
+    -DABSL_PROPAGATE_CXX_STD=ON
+    -DCMAKE_CXX_STANDARD=17
+    -DCMAKE_SKIP_INSTALL_RPATH=ON"
+
+post_install() {
+    blicense LICENSE
+}

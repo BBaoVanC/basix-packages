@@ -1,0 +1,34 @@
+pkg_name=brotli
+version=1.2.0
+revision=1
+build_style=cmake
+short_desc="Generic-purpose lossless compression algorithm"
+home_page="https://github.com/google/brotli"
+license="MIT"
+dist_files="https://github.com/google/brotli/archive/refs/tags/v${version}.tar.gz>brotli-${version}.tar.gz"
+checksum="88a91819bc0e0b5bd27bd8c7d8ffddf132768851069f2cd5e905eac87e2860de"
+
+use_flags="man -static"
+
+make_depends="cmake"
+
+configure_args="
+    -DBUILD_SHARED_LIBS=ON
+    -DBROTLI_DISABLE_TESTS=ON
+    -DCMAKE_SKIP_INSTALL_RPATH=ON
+    $(use_if static -DBROTLI_BUILD_FOR_PACKAGE=ON)"
+
+post_install() {
+    if use static; then
+        for _a in "$DESTDIR"/usr/lib/*-static.a; do
+            [ -f "$_a" ] || continue
+            mv -f "$_a" "${_a%-static.a}.a"
+        done
+    fi
+
+    if ! use man; then
+        brm /usr/share/man
+    fi
+
+    blicense LICENSE
+}
