@@ -1,0 +1,26 @@
+pkg_name=usbredir
+version=0.15.0
+revision=1
+build_style=meson
+short_desc="USB traffic redirection protocol libraries"
+home_page="https://www.spice-space.org/usbredir.html"
+license="LGPL-2.1-or-later, GPL-2.0-or-later"
+dist_files="https://gitlab.freedesktop.org/spice/usbredir/-/archive/usbredir-${version}/usbredir-usbredir-${version}.tar.bz2"
+checksum="e3966c5d0221173867b3668a1ecc4d11506e8848ef9750a157723b8c9b7f1421"
+
+# tools is the standalone usbredirect bin
+# qemu and spice-gtk only need the libs here
+use_flags="-tools"
+
+depends="glib libusb"
+make_depends="glib libusb meson pkgconf"
+
+configure_args="
+    -Dgit_werror=disabled
+    -Dfuzzing=disabled
+    $(use_if tools -Dtools=enabled -Dtools=disabled)"
+
+post_install() {
+    blicense COPYING
+    blicense COPYING.LIB
+}

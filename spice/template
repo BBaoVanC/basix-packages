@@ -1,0 +1,32 @@
+pkg_name=spice
+version=0.16.0
+revision=1
+build_style=meson
+short_desc="SPICE server library, the host side of the SPICE remote display protocol"
+home_page="https://www.spice-space.org"
+license="LGPL-2.1-or-later"
+dist_files="https://www.spice-space.org/download/releases/spice-server/spice-${version}.tar.bz2"
+checksum="6060faaffcc02dfcd31e355481047f7bad4c4a4bc98f856bcf97ae9850a76d41"
+
+use_flags="lz4 opus"
+
+depends="glib libjpeg-turbo libressl pixman zlib
+ $(use_if lz4 lz4)
+ $(use_if opus opus)"
+make_depends="glib libjpeg-turbo libressl meson pixman pkgconf python
+ python-pyparsing spice-protocol zlib
+ $(use_if lz4 lz4)
+ $(use_if opus opus)"
+
+configure_args="
+    -Dgstreamer=no
+    -Dsasl=false
+    -Dsmartcard=disabled
+    -Dmanual=false
+    -Dtests=false
+    $(use_if lz4 -Dlz4=true -Dlz4=false)
+    $(use_if opus -Dopus=enabled -Dopus=disabled)"
+
+post_install() {
+    blicense COPYING
+}
