@@ -1,0 +1,30 @@
+pkg_name=less
+version=692
+revision=1
+build_style=gnu-configure
+short_desc="Pager program similar to more(1)"
+home_page="https://www.greenwoodsoftware.com/less"
+license="GPL-3.0-or-later, BSD-2-Clause"
+dist_files="https://www.greenwoodsoftware.com/less/less-${version}.tar.gz"
+checksum="21dd0ae858ca02990cdccff12be0911fa75f1173eeb3a5d224e68da7da473016"
+
+# pcre2: search with pcre2 instead of musl's posix regcomp
+# more_symlink: also own /usr/bin/more
+use_flags="man pcre2 -more_symlink"
+
+depends="ncurses $(use_if pcre2 pcre2)"
+make_depends="ncurses $(use_if pcre2 pcre2)"
+
+configure_args="$(use_if pcre2 --with-regex=pcre2 --with-regex=posix)"
+
+post_install() {
+    if use more_symlink; then
+        bln less /usr/bin/more
+        use man && bln less.1 /usr/share/man/man1/more.1
+    fi
+
+    use man || brm /usr/share/man
+
+    blicense LICENSE
+    blicense COPYING
+}
