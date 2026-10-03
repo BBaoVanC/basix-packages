@@ -3,14 +3,14 @@
 # since there's no compile here, nbd
 # this fucking sucked, btw.
 pkg_name=linux-firmware
-version=20260622
+version=20260810
 revision=1
 build_style=custom
 short_desc="Firmware blobs for devices supported by the Linux kernel"
 home_page="https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git"
 license="GPL-2.0-only, GPL-2.0-or-later, MIT, custom:redistributable"
 dist_files="https://cdn.kernel.org/pub/linux/kernel/firmware/linux-firmware-${version}.tar.xz"
-checksum="0d4b2c1f6de5b90bedb0dbb4c04123ebaed64a9c1107015bfb3395ed35d0244d"
+checksum="80d492fdca9aae6b0c8ff7b5277e41ca314e76c03b6254867b2858c2dde18f70"
 
 # these are vendor blobs
 no_strip=yes
@@ -20,7 +20,6 @@ no_strip=yes
 #       intel-audio below is the older avs/catpt/sst stuff, the only sof
 #       firmware in this tree is mediateks
 use_flags="amdgpu -amd-ucode amd-misc -radeon -nvidia intel-gpu intel-bt intel-audio -intel-camera -intel-misc iwlwifi ath qca -qcom brcm mediatek realtek -marvell -ti-wifi -wifi-misc -ethernet -storage -serial -media sound -arm -whence -dedup -xz -zstd"
-
 
 # optional flags for compression, none of this is required
 # compressed firmware needs CONFIG_FW_LOADER_COMPRESS_{XZ,ZSTD} in the kernel though
@@ -55,11 +54,11 @@ _fw_paths() {
         marvell) echo "mrvl libertas mwl8k mwlwifi lbtf_usb.bin usb8388*" ;;
         ti-wifi) echo "ti-connectivity wl12*.bin wl18*.bin" ;;
         wifi-misc) echo "atmel atusb rsi rsi_91x.fw wfx agere_*.bin wsm_22.bin
-                         vntwusb.fw sdd_sagrad_*.bin ositech 3com" ;;
+                         vntwusb.fw sdd_sagrad_*.bin ositech 3com morsemicro" ;;
         ethernet) echo "bnx2 bnx2x cxgb3 cxgb4 e100 tigon liquidio netronome qed
                         mellanox myricom myri10ge_*.dat cavium dpaa2 emulex
                         tehuti vxge slicoss sxg acenic phanfw.bin kaweth
-                        hfi1_*.fw sun ueagle-atm" ;;
+                        hfi1_*.fw sun" ;;
         storage) echo "adaptec advansys isci qlogic ql2*.bin
                        cbfw-*.bin ct2fw-*.bin ctfw-*.bin" ;;
         serial) echo "moxa keyspan keyspan_pda edgeport whiteheat*.fw ti_[0-9]*.fw
@@ -109,9 +108,12 @@ do_install() {
     done
 
     for _f in $use_flags; do
+        _f=${_f#[+-]}
         if use "$_f"; then continue; fi
-        # deliberately unquoted, the table is globs
-        for _p in $(_fw_paths "$_f"); do rm -rf "$_fw"/$_p; done
+        # deliberately unquoted, the table is globs, also catch --xz/--zstd output
+        for _p in $(_fw_paths "$_f"); do
+            rm -rf "$_fw"/$_p "$_fw"/$_p.zst "$_fw"/$_p.xz
+        done
     done
 
     # whence links firmware across directories, so pruning leaves dead symlinks
@@ -129,9 +131,10 @@ do_install() {
         sh ./dedup-firmware.sh "$_fw"
     fi
 
-    for _l in LICEN[CS]E.* GPL-2 GPL-3; do
+    for _l in LICEN[CS]E.* LICENSES/* GPL-2 GPL-3; do
         if [ -f "$_l" ]; then blicense "$_l"; fi
     done
+
     # ~1.5M of provenance and redistribution terms for every blob in the tree
     if use whence; then
         binstall WHENCE 0644 "/usr/share/licenses/$pkg_name"
