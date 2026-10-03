@@ -1,6 +1,6 @@
 pkg_name=util-linux
 version=2.42.4
-revision=1
+revision=2
 build_style=gnu-configure
 short_desc="Miscellaneous Linux system utilities"
 home_page="https://github.com/util-linux/util-linux"
@@ -11,7 +11,7 @@ checksum="f469475f55e55cb26253f2e106363523dbe5a5d48fc97780eee4c6864df23d2f"
 depends="zlib"
 make_depends="linux-headers zlib"
 
-use_flags="-udev -python -systemd -nls"
+use_flags="-udev -python -systemd -nls -getty-symlink -doc -completions"
 
 configure_args="
     --enable-libuuid
@@ -28,6 +28,11 @@ configure_args="
     $(use_with systemd)"
 
 post_install() {
-    brm /usr/share/doc
-    brm /usr/share/bash-completion
+    if use getty-symlink; then
+        bln agetty /usr/bin/getty
+        bln agetty.8 /usr/share/man/man8/getty.8
+    fi
+
+    use doc || brm /usr/share/doc
+    use completions || brm /usr/share/bash-completion
 }
