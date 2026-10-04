@@ -1,6 +1,6 @@
 pkg_name=bpm
 version=0.8.3
-revision=1
+revision=2
 build_style=custom
 short_desc="basix package manager"
 home_page="https://github.com/kkrruumm/bpm"
@@ -43,8 +43,6 @@ do_install() {
 
     bmkdir /var/db/bpm/repos /var/cache/bpm
 
+    # this is here incase i forget to bump PROGVER upstream
     bsed "s/^BPM_PROGVER=.*/BPM_PROGVER=$version/" "$DESTDIR/usr/bin/bpm"
-    if [ -f "$DESTDIR/etc/bpm/bpm.conf" ]; then
-        bsed 's/BPM_COMPRESS:=zst/BPM_COMPRESS:=xz/' "$DESTDIR/etc/bpm/bpm.conf"
-    fi
 }
