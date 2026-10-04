@@ -1,15 +1,14 @@
 # place your kernel configuration at files/dotconfig
-# this is run through 'make olddefconfig' so a config from an older
-# release is probably chill
-pkg_name=linux
-version=6.18.54
+pkg_name=linux-stable
+version=7.2.9
 revision=1
 build_style=custom
 short_desc="The Linux kernel"
 home_page="https://kernel.org"
 license="GPL-2.0-only"
-dist_files="https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${version}.tar.xz"
-checksum="e0fc50fd81511a39f81f94811779de2d52ad4fa67ec9188744fb8096505d9737"
+dist_files="https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-${version}.tar.xz"
+checksum="904c40caf312b66bcfdf626d6063699260227b1fd7d2a4edddded5757828a79c"
+wrk_src="linux-$version"
 
 # bison and flex build kconfig, libelf builds objtool, libressl signs modules
 # and builds the trusted keyring, perl is used by several scripts for whatever fuckin reason
@@ -42,8 +41,8 @@ do_install() {
     _rel=$($make_cmd -s kernelrelease)
 
     binstall arch/x86/boot/bzImage 0644 /boot "vmlinuz-$_rel"
-    binstall System.map            0644 /boot "System.map-$_rel"
-    binstall .config               0644 /boot "config-$_rel"
+    binstall System.map 0644 /boot "System.map-$_rel"
+    binstall .config 0644 /boot "config-$_rel"
 
     if use modules; then
         $make_cmd INSTALL_MOD_PATH="$DESTDIR/usr" INSTALL_MOD_STRIP=1 modules_install
