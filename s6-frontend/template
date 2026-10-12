@@ -1,19 +1,24 @@
 pkg_name=s6-frontend
 version=0.1.0.0
-revision=1
+revision=2
+_man_rev=1
+_man_version=$version.$_man_rev
 build_style=configure
 short_desc="Friendlier user interface to the s6 init system"
 home_page="https://skarnet.org/software/s6-frontend"
 license="ISC"
-dist_files="https://skarnet.org/software/s6-frontend/s6-frontend-${version}.tar.gz"
-checksum="b5d88590ff8f9176bf602b8d1d487c996ef4578c1143e57c915a2559735b6035"
 
 # s6li here is "s6-linux-init," this is so s6-frontend can handle reboot/shutdown/poweroff
 # basix defaults to using almost the whole s6 stack so this is on by default
 #
 # util-linux here is only needed for colorized output through column, busybox doesn't
 # have column so this is off by default
-use_flags="-static -pkgconfig doc s6li -util-linux -nsss"
+use_flags="man s6li -static -pkgconfig -doc -util-linux -nsss"
+
+dist_files="https://skarnet.org/software/s6-frontend/s6-frontend-${version}.tar.gz
+  $(usev man "https://git.sr.ht/~humm/s6-frontend-man-pages/archive/v${_man_version}.tar.gz>s6-frontend-man-pages-${_man_version}.tar.gz")"
+
+checksum="b5d88590ff8f9176bf602b8d1d487c996ef4578c1143e57c915a2559735b6035 0a36955f9f8da3d93a09c18a41071bb0663521aeceb6100e62078cc5609c2994"
 
 depends="skalibs execline s6 s6-rc
     $(use_if s6li s6-linux-init)
@@ -46,5 +51,11 @@ post_install() {
     if use doc; then
         bcopy doc/. "/usr/share/doc/$pkg_name"
     fi
+
+    if use man; then
+        _mp=$build_dir/s6-frontend-man-pages-v$_man_version
+        ( cd "$_mp" && $make_cmd DESTDIR="$DESTDIR" PREFIX=/usr install )
+    fi
+
     blicense COPYING
 }
