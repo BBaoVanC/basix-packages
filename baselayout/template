@@ -1,6 +1,6 @@
 pkg_name=baselayout
 version=1
-revision=4
+revision=5
 build_style=custom
 short_desc="Base filesystem layout and /etc defaults"
 home_page=""
