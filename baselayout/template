@@ -1,6 +1,6 @@
 pkg_name=baselayout
 version=1
-revision=3
+revision=4
 build_style=custom
 short_desc="Base filesystem layout and /etc defaults"
 home_page=""
@@ -11,7 +11,7 @@ dist_files="
 checksum="0e25bf33c6d8eb18e0dd4ba0fcb5995da6fbc6b1f7686f84ddfd73bb4f01e2a7 83b5e58aa5155806fc1dac7deaf8306a12a947f29da0a72fbb1fec265c80443a"
 
 do_install() {
-    for d in boot dev etc/modules-load.d etc home mnt opt run usr usr/bin usr/include usr/lib \
+    for d in boot dev etc/modules-load.d etc/sysctl.d etc home mnt opt run usr usr/bin usr/include usr/lib \
              usr/share var/cache var/local var/opt var/log var/log/old \
              var/lib var/lib/misc var/empty var/service var/spool; do
         bmkdir -m 0755 "/$d"
@@ -35,8 +35,10 @@ do_install() {
     bln /proc/self/mounts /etc/mtab
 
     for f in "$FILESDIR"/*; do
-        bconf "$f"
+        if [ -f "$f" ]; then bconf "$f"; fi
     done
+
+    binstall "$FILESDIR/sysctl.d/10-basix.conf" 0644 /etc/sysctl.d
 
     binstall services-6.4  0644 /etc services
     binstall protocols-6.4 0644 /etc protocols
